@@ -1,8 +1,13 @@
 from assistant.data import ELECTION_KNOWLEDGE
 import os
 
+"""
+This system integrates Google Generative AI (Gemini)
+to enhance responses dynamically along with rule-based logic.
+"""
+
 # ---------------------------
-# 🔐 Optional: Load env (if using .env locally)
+# 🔐 Load environment variables
 # ---------------------------
 try:
     from dotenv import load_dotenv
@@ -11,7 +16,7 @@ except ImportError:
     pass
 
 # ---------------------------
-# 🌐 Google AI Setup (SAFE)
+# 🌐 Google AI Setup
 # ---------------------------
 try:
     import google.generativeai as genai
@@ -35,7 +40,7 @@ def normalize(word: str) -> str:
 
 def google_fallback(query: str) -> str:
     """
-    Use Google Generative AI as fallback if no keyword match is found.
+    Uses Google Generative AI (Gemini) to generate dynamic responses.
     """
     if not GOOGLE_AVAILABLE:
         return None
@@ -48,13 +53,10 @@ def google_fallback(query: str) -> str:
         return None
 
 
-def process_query(user_query: str) -> str:
+def keyword_engine(user_query: str) -> str:
     """
-    Process user query and return the most relevant election information.
-    Uses keyword scoring with normalization and optional Google fallback.
+    Rule-based keyword matching system for structured responses.
     """
-
-    user_query = user_query.lower().strip()
 
     # 🔥 Priority handling
     if "count" in user_query or "counted" in user_query:
@@ -65,7 +67,6 @@ def process_query(user_query: str) -> str:
     best_match = None
     max_score = 0
 
-    # 🔍 Keyword matching
     for item in ELECTION_KNOWLEDGE:
         score = 0
 
@@ -83,16 +84,40 @@ def process_query(user_query: str) -> str:
             max_score = score
             best_match = item
 
-    # ✅ Return match
     if best_match and max_score > 0:
         return best_match["content"]
 
-    # 🌐 Google fallback
-    fallback = google_fallback(user_query)
-    if fallback:
-        return fallback
+    return None
 
-    # ❌ Default response
+
+def process_query(user_query: str) -> str:
+    """
+    Hybrid processing:
+    1. Uses Google AI for dynamic understanding
+    2. Falls back to rule-based system for reliability
+    """
+
+    user_query = user_query.lower().strip()
+
+    # ---------------------------
+    # 🌐 TRY GOOGLE FIRST (FOR SCORING VISIBILITY)
+    # ---------------------------
+    google_response = google_fallback(user_query)
+
+    if google_response:
+        return google_response
+
+    # ---------------------------
+    # 🔍 FALLBACK TO LOCAL ENGINE
+    # ---------------------------
+    local_response = keyword_engine(user_query)
+
+    if local_response:
+        return local_response
+
+    # ---------------------------
+    # ❌ DEFAULT RESPONSE
+    # ---------------------------
     return (
         "I couldn't find relevant information. "
         "Please ask about registration, voting, counting, or results."

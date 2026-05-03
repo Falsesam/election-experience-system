@@ -52,6 +52,8 @@ python -m pip install -r requirements.txt
 ```bash
 python main.py
 ```
+## 🤖 Google AI Integration
+This system uses Google Generative AI (Gemini) to dynamically enhance responses beyond static knowledge.
 
 ### Run Web App
 
